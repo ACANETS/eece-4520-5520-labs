@@ -11,7 +11,7 @@ import serial
 
 # serial port dev file name
 # need to change based on the particular host machine
-serialDevFile = '/dev/tty.usbmodem14601'
+serialDevFile = 'COM3'
 ser=serial.Serial(serialDevFile, 9600, timeout=1)
 
 while True:

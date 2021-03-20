@@ -9,13 +9,19 @@ import turtle
 import time
 import random
 # TODO uncomment the following line to use pyserial package
-#import serial
+import serial
+
+import sys
 
 # Note the serial port dev file name
 # need to change based on the particular host machine
 # TODO uncomment the following two lines to initialize serial port
-#serialDevFile = '/dev/cu.usbmodem14201'
-#ser=serial.Serial(serialDevFile, 9600, timeout=0)
+if sys.platform == 'win32':
+    serialDevFile = 'COM3'
+else:
+    serialDevFile = '/dev/cu.usbmodem14201'
+
+ser=serial.Serial(serialDevFile, 9600, timeout=0)
 
 delay = 0.1
 
@@ -116,6 +122,25 @@ while True:
     # elif ......
     #
 
+    # Get serial information
+    line = ser.readline()
+    controller_info = line.decode('ascii')
+
+    if controller_info:
+        print(controller_info)
+
+        if controller_info[0] == 'w':
+            go_up()
+        elif controller_info[0] == 's':
+            go_down()
+        elif controller_info[0] == 'a':
+            go_left()
+        elif controller_info[0] == 'd':
+            go_right()
+        elif controller_info[0] == 'g':
+            food.color("gold")
+            ppa = 20
+
     # Check for a collision with the border
     if head.xcor()>290 or head.xcor()<-290 or head.ycor()>290 or head.ycor()<-290:
         time.sleep(1)
@@ -131,6 +156,8 @@ while True:
 
         # Reset the score
         score = 0
+        ppa = 10
+        food.color("red")
 
         # Reset the delay
         delay = 0.1
@@ -146,6 +173,9 @@ while True:
         # you need to send a flag to Arduino indicating an apple is eaten
         # so that the Arduino will beep the buzzer
         # Hint: refer to the example at Serial-RW/pyserial-test.py
+
+        # Inform arduino controller that apple has been eaten
+        ser.write(b'E')
 
         # Move the food to a random spot
         x = random.randint(-290, 290)
@@ -164,7 +194,9 @@ while True:
         delay -= 0.001
 
         # Increase the score
-        score += 10
+        score += ppa
+        ppa = 10
+        food.color("red")
 
         if score > high_score:
             high_score = score
@@ -202,6 +234,8 @@ while True:
 
             # Reset the score
             score = 0
+            ppa = 10
+            food.color("red")
 
             # Reset the delay
             delay = 0.1

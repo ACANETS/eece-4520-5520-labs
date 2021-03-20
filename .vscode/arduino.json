@@ -1,0 +1,9 @@
+{
+    "board": "arduino:avr:mega",
+    "configuration": "cpu=atmega2560",
+    "output": "build",
+    "port": "COM3",
+    "sketch": "lab2\\lab2.ino",
+    "programmer": "AVRISP mkII",
+    "debugger": "jlink"
+}
