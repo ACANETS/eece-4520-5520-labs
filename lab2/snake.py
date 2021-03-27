@@ -131,12 +131,16 @@ while True:
 
         if controller_info[0] == 'w':
             go_up()
+            ser.write(b'W')
         elif controller_info[0] == 's':
             go_down()
+            ser.write(b'S')
         elif controller_info[0] == 'a':
             go_left()
+            ser.write(b'A')
         elif controller_info[0] == 'd':
             go_right()
+            ser.write(b'D')
         elif controller_info[0] == 'g':
             food.color("gold")
             ppa = 20
@@ -146,6 +150,10 @@ while True:
         time.sleep(1)
         head.goto(0,0)
         head.direction = "stop"
+
+        # Inform arduino that border has been hit and direction should
+        # be reset
+        ser.write(b'R')
 
         # Hide the segments
         for segment in segments:
@@ -224,6 +232,10 @@ while True:
             time.sleep(1)
             head.goto(0,0)
             head.direction = "stop"
+
+            # Inform arduino that segments has been hit and direction
+            # should be reset
+            ser.write(b'R')
         
             # Hide the segments
             for segment in segments:
