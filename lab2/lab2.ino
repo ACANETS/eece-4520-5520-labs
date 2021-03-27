@@ -1,10 +1,6 @@
 
 #include <MPU6050.h>
 
-// digital pin connected to joystick switch output (used as 
-// accelerometer simulation)
-const int sw_pin = 2;
-
 // Analog pin connected to joystick X output
 const int kJoystickXPin = 0;
 
@@ -27,7 +23,7 @@ const float kJoystickNeutralValue = kMaxJoystickValue / 2;
 const float kJoystickDeadzoneThreshold = 50;
 
 // The gyroscope sensitivity threshold for the MPU6050 module
-const int kGyroThresholdSensitivity = 2;
+const int kGyroThresholdSensitivity = 3;
 
 // The time step the gyroscope is being read at in seconds
 const float kGyroTimeStep = 0.01;
@@ -39,7 +35,7 @@ const float kGyroDirectionThreshold = 25;
 
 // The threshold delta that the accelerometer must exceed in any
 // direction to be counted as a 'shake'
-const float kShakeThreshold = 3.0;
+const float kShakeThreshold = 5;
 
 // The amount of time in milliseconds that the buzzer should beep after
 // an apple is eaten
@@ -75,7 +71,8 @@ enum class ECurrentDirection {
     RIGHT = kRight  // Snake is going in the rightwards direction
 };
 
-unsigned int timer = 0;         // Time that the loop starts at
+unsigned long last_gyro_read_time = 0;  // Time gyro last read
+float gyro_delay = 0.0;         // Time in secs between gyro readings
 unsigned int resend_timer = 0;  // Time that shaken char is sent
 unsigned int buzzer_start_time = 0; // Time buzzer was period is activated
 unsigned int last_beep = 0;         // Last time buzzer was toggled on
@@ -89,10 +86,10 @@ bool buzzer_toggle = false; // Switch buzzer on or off
 
 int x = 512;    // Current x value read in from joystick
 int y = 512;    // Current y value read in from joystick
-int sw = 1;     // Joystick push button value (0 is pressed)
 float roll = 0.0;   // Cumulative roll (tilt left or right) value
 float pitch = 0.0;  // Cumulative pitch (tilt forward or backward) value
 Vector gyro_normalized; // Normalized gyro values from MPU6050 module
+Vector last_accel;      // Previous vector of accelerometer values
 
 int incomingByte = 0;           // Byte sent from game over serial
 char controller_direction = 0;  // Direction value sent by controller
@@ -102,7 +99,6 @@ ECurrentDirection current_direction = ECurrentDirection::STATIONARY;
 
 // Gyroscope/Accelerometer library object
 MPU6050 mpu;
-
 
 /**
  * @brief Function to determine the directional value from sensor output
@@ -200,13 +196,75 @@ void SendDirection(char dir_to_send){
  */
 bool CheckShaking(){
     bool shaking = false;
-    if(!is_shaken){
-        if(millis() - resend_timer > kResendPeriod){
-            resend_timer = millis();
-            shaking = true;
-        }
+
+    // If the resend delay period has passed and the game has not
+    // acknowledged that the module has been shaken, then check to
+    // see if the module is being shaken
+    if(!is_shaken && (millis() - resend_timer > kResendPeriod)){
+        
+        // Get normalized accelerometer values
+        Vector current_accel = mpu.readNormalizeAccel();
+
+        // Get change in force from last reading
+        double delta_x = abs(abs(current_accel.XAxis) - abs(last_accel.XAxis));
+        bool x_sign_diff = signbit(current_accel.XAxis) 
+                            != signbit(last_accel.XAxis);
+        
+        double delta_y = abs(abs(current_accel.YAxis) - abs(last_accel.YAxis));
+        bool y_sign_diff = signbit(current_accel.YAxis) 
+                            != signbit(last_accel.YAxis);
+        
+        double delta_z = abs(abs(current_accel.ZAxis) - abs(last_accel.ZAxis));
+        bool z_sign_diff = signbit(current_accel.ZAxis) 
+                            != signbit(last_accel.ZAxis);
+        
+
+        // Save current vector for next calculation
+        last_accel = current_accel;
+        
+        // Calculate if shaking is occuring
+        shaking = ((delta_x > kShakeThreshold && x_sign_diff)
+                    || (delta_y > kShakeThreshold && y_sign_diff)
+                    || (delta_z > kShakeThreshold && z_sign_diff));
+
+        // Set resend timer so that a shaken value won't be resent
+        // too soon and clog up the serial comms channel
+        if(shaking) resend_timer = millis();
     }
     return shaking;
+}
+
+/**
+ * @brief Function to turn on the active buzzer if an apple has been
+ *        eaten in the snake game
+ * 
+ */
+void CheckBuzzer(){
+    // If the game indicates an apple was eaten, turn the buzzer on
+    // for the Buzzer Beep Time constant
+    if(buzzer_on){
+
+        // Check to see if toggle time has been reached
+        if(millis() - last_beep > kBuzzerDelay){
+            // Toggle buzzer on/off
+            digitalWrite(kBuzzerPin,(buzzer_toggle)?HIGH:LOW);
+
+            // Save buzzer toggle time
+            last_beep = millis();
+
+            // Switch toggle value
+            buzzer_toggle = !buzzer_toggle;
+        }
+        
+        // Check if Buzzer Beep Time constant has been exceeded
+        if(millis() - buzzer_start_time  > kBuzzerBeepTime){
+            buzzer_on = false;      // Reset buzzer on value
+            buzzer_toggle = false;  // Reset buzzer toggle value
+
+            // Make sure buzzer is off
+            digitalWrite(kBuzzerPin,LOW);
+        }
+    }
 }
 
 /**
@@ -219,11 +277,10 @@ void setup() {
     Serial.begin(9600);
     
     // Set up digital pins
-    pinMode(sw_pin, INPUT_PULLUP);
     pinMode(kBuzzerPin, OUTPUT);
 
     // Wait until accelerometer/gyroscope model is set up
-    while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G)){
+    while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_8G)){
         delay(500);
     }
 
@@ -240,6 +297,9 @@ void setup() {
     mpu.setGyroOffsetX(kGyroXOffset);
     mpu.setGyroOffsetY(kGyroYOffset);
     mpu.setGyroOffsetZ(kGyroZOffset);
+
+    // Initialize previous acceleration vector value
+    last_accel = mpu.readNormalizeAccel();
 }
 
 /**
@@ -248,8 +308,6 @@ void setup() {
  * 
  */
 void loop() {
-
-    timer = millis();   // Get start time of the loop
     controller_direction = 0;   // Clear the controller direction
 
     // read from the Serial port:
@@ -294,16 +352,26 @@ void loop() {
         }
     }
 
-    // Read joystick button (being used as accelerometer shaking stand in)
-    sw = digitalRead(sw_pin);
+    // Get joystick values
+    x = analogRead(kJoystickXPin);  // Get joystick x value
+    y = analogRead(kJoystickYPin);  // Get joystick y value
+
+    // Get delay between gyro readings
+    gyro_delay = (millis() - last_gyro_read_time) / 1000.0;
+
+    // Read normalized values from gyro
+    gyro_normalized = mpu.readNormalizeGyro();
+
+    // Save last gyro read time
+    last_gyro_read_time = millis();
+
+    // Calculate roll and pitch
+    roll += gyro_normalized.XAxis*gyro_delay;
+    pitch += gyro_normalized.YAxis*gyro_delay;
 
     // Only check joystick and gyro if the game is ready for the
     // next direction
     if(ready_for_next_direction){
-        // Read joystick first - if no input, read gyro
-
-        x = analogRead(kJoystickXPin);  // Get joystick x value
-        y = analogRead(kJoystickYPin);  // Get joystick y value
 
         // 0 on joystick is up, so invert y so that CheckDirection returns
         // correct value
@@ -313,63 +381,24 @@ void loop() {
                                             kJoystickNeutralValue, 
                                             kJoystickDeadzoneThreshold);
 
-        // If the joystick did not output a direction, check the gyro
-        if(controller_direction == static_cast<char>(
-            ECurrentDirection::STATIONARY)){
-
-            // Read normalized values from gyro
-            gyro_normalized = mpu.readNormalizeGyro();
-
-            // Calculate roll and pitch
-            roll += gyro_normalized.XAxis*kGyroTimeStep;
-            pitch += gyro_normalized.YAxis*kGyroTimeStep;
+        // If the joystick did not output a direction, use gyro direction
+        if(controller_direction == 0){
             
             // Check gyro directional values
             controller_direction = CheckDirection(roll, pitch, 0, 
                 0, kGyroDirectionThreshold);
+            
         }
 
         // Send whatever direction value was determined
         SendDirection(controller_direction);
     }
     
-    // Joystick button pressed, simulate accelerometer being shaken
-    if(sw == 0){
-
-        // Check to see if accelerometer module is being shaken, if so
-        // send the 'shaken' character to the game
-        if(CheckShaking()){
-            Serial.println(kShaken);
-        }
-
+    // Check to see if accelerometer module is being shaken, if so
+    // send the 'shaken' character to the game
+    if(CheckShaking()){
+        Serial.println(kShaken);
     }
 
-    // If the game indicates an apple was eaten, turn the buzzer on
-    // for the Buzzer Beep Time constant
-    if(buzzer_on){
-
-        // Check to see if toggle time has been reached
-        if(millis() - last_beep > kBuzzerDelay){
-            // Toggle buzzer on/off
-            digitalWrite(kBuzzerPin,(buzzer_toggle)?HIGH:LOW);
-
-            // Save buzzer toggle time
-            last_beep = millis();
-
-            // Switch toggle value
-            buzzer_toggle = !buzzer_toggle;
-        }
-        
-        // Check if Buzzer Beep Time constant has been exceeded
-        if(millis() - buzzer_start_time  > kBuzzerBeepTime){
-            buzzer_on = false;      // Reset buzzer on value
-            buzzer_toggle = false;  // Reset buzzer toggle value
-
-            // Make sure buzzer is off
-            digitalWrite(kBuzzerPin,LOW);
-        }
-    }
-
-    // Delay code until next gyro reading should be taken
-    delay((kGyroTimeStep * 1000) - (millis() - timer));
+    CheckBuzzer();
 }

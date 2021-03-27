@@ -142,6 +142,7 @@ while True:
             go_right()
             ser.write(b'D')
         elif controller_info[0] == 'g':
+            ser.write(b'G')
             food.color("gold")
             ppa = 20
 
