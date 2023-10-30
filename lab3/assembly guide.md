@@ -9,7 +9,7 @@
 
 This is an overview of all the parts included with the kit:
 
-<img src="/images/overview.jpg" width="50%"/>
+<img src="images/overview.jpg" width="50%"/>
 
 - 1 pack metal chassis kit
   - 2 chassis plates
@@ -51,13 +51,13 @@ This is an overview of all the parts included with the kit:
 
 Stretch the tires onto the plastic wheel rims carefully.
 
-<img src="/images/wheels_assembled.jpg" width="50%"/>
+<img src="images/wheels_assembled.jpg" width="50%"/>
 
 ## Assembling the motors
 
 The parts for one motor assembly are shown below:
 
-<img src="/images/motor_parts.jpg" width="50%"/>
+<img src="images/motor_parts.jpg" width="50%"/>
 
 The motor mounting screws fit into two holes on the sides of the motors. They attach the motors to the mounting bracket. Take care when tightening the screws since the plastic motor case can crack when overtightened.
 
@@ -66,46 +66,46 @@ The T-slot photo interrupters and slotted encoder wheels are optional. They allo
 
 The completed motor assembly should look something like the picture below:
 
-<img src="/images/motors_left_right.jpg" width="50%"/>
+<img src="images/motors_left_right.jpg" width="50%"/>
 
 Note that the nuts that secure the motor have to have their flats on the top and bottom, since they hit the chassis if they are diagonal.
 
-<img src="/images/motor_assembled.jpg" width="50%"/>
+<img src="images/motor_assembled.jpg" width="50%"/>
 
 
 ## Chassis assembly
 
 Next, mount three standoffs onto one of the chassis plates as shown below:
 
-<img src="/images/chassis_standoffs.jpg" width="50%"/>
+<img src="images/chassis_standoffs.jpg" width="50%"/>
 
 This will be the bottom plate. Make sure to have the plate at the right orientation since it is easy to have it flipped the wrong way around.
 
 Place the motors onto the bottom plate, making sure that the slots on the mounting bracket line up with their corresponding holes:
 
-<img src="/images/motors_on_chassis.jpg" width="50%"/>
+<img src="images/motors_on_chassis.jpg" width="50%"/>
 
 The motors will be loosely attached at this point, so be careful not to have them pop out of place. The top plate we prepare next will hold it more securely.
 
 Prepare the top chassis plate by attaching standoffs to the Arduino Mega. We specifically want only these three mounting holes which correspond to slots on the chassis plate:
 
-<img src="/images/arduino_standoffs.jpg" width="50%"/>
+<img src="images/arduino_standoffs.jpg" width="50%"/>
 
 Mount the arduino onto the chassis plate and secure it with nuts on the underside. We want it to look something like this:
 
-<img src="/images/arduino_on_chassis.jpg" width="50%"/>
+<img src="images/arduino_on_chassis.jpg" width="50%"/>
 
 Once the standoffs are secured to the chassis plate, we need to remove the Arduino in order to gain access to the mounting holes underdeath it. Leave the standoffs on the chassis plate and unscrew the Arduino from the top. Once it's off, we can place the top chassis plate onto the bottom chassis + motors assembly and secure everything into place.
 
 When attaching the top plate, make sure to have the motor mounting brackets slot into their corresponding holes:
 
-<img src="/images/chassis_assembled.jpg" width="50%"/>
+<img src="images/chassis_assembled.jpg" width="50%"/>
 
 Use the remaining short M3 screws to tightly secure the top plate. Don't reattach the Arduino yet, since we still need space to mount other attachments.
 
 Mount the metal roller ball to the front of the robot using the included screws. The plastic is very soft so be careful not to overtighten the screws. There is a chance that the screws might pull straight through the plastic.
 
-<img src="/images/ball_roller.jpg" width="50%"/>
+<img src="images/ball_roller.jpg" width="50%"/>
 
 ## Attaching the wheels
 
@@ -115,13 +115,13 @@ You can attach the wheels at this point. Make sure to secure them by adding a sc
 
 Flip the robot upside-down to mount the battery and its charging PCB. Ideally you should use double-sided tape to secure it since the heat from hot glue can damage the battery. Take note of the orientation of the charging PCB so the plug isn't blocked.
 
-<img src="/images/battery_attached.jpg" width="50%"/>
+<img src="images/battery_attached.jpg" width="50%"/>
 
 ## Distance sensor
 
 Flip the robot over again to attach the HC-SR04 distance sensor. It mounts using the long L bracket and a single screw and nut. The sensor can be attached with either hot glue or double sided tape, but ideally it should be oriented vertically like in the picture to maximize its performance.
 
-<img src="/images/ultrasonic.jpg" width="50%"/>
+<img src="images/ultrasonic.jpg" width="50%"/>
 
 ## Final touches
 
