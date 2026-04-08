@@ -1,0 +1,4 @@
+pyserial>=3.5
+matplotlib>=3.5
+numpy>=1.21
+pygame>=2.1
