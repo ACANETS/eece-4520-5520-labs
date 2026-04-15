@@ -545,4 +545,4 @@ gx_dps = raw_gx / 131.0      (±250°/s range)
 ---
 
 *Lab writeup prepared for EECE 4520/5520 Spring 2026, University of Massachusetts Lowell.*
-*Questions? Post on Piazza or visit office hours.*
+*Questions? Post on Blackboard/Canvas or visit office hours.*
