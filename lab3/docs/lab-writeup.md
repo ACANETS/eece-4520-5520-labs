@@ -12,7 +12,7 @@
 | **Semester** | Spring 2026 |
 | **Lab Title** | Smart Parking Sensor — Ultrasonic Sensing, Motor Control & SPI Display |
 | **Submission** | Submit on Blackboard: GitHub repo link + PDF report |
-| **Late Policy** | 10% per day, no credit after 5 days |
+| **Late Policy** | 5% per day, late submission accepted before May 1, 2026 |
 
 > **EECE 5520 Graduate Requirement**
 > Graduate students must complete all steps (1–7) plus **Steps 5–6: Serial Protocol
